@@ -1,2 +1,8 @@
 rpiboot
 bin2c
+pieeprom.sig
+boot.sig
+rpiboot.exe
+*.swp
+bin2c.exe
+secure-boot-recovery/pieeprom.bin
