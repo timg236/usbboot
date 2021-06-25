@@ -73,6 +73,7 @@ while getopts i:k:ho: option; do
    i) IMAGE="${OPTARG}"
       ;;
    k) KEY="${OPTARG}"
+      [ -f "${KEY}" ] || echo "Missing private key file \"${KEY}\""
       ;;
    o) OUTPUT="${OPTARG}"
       ;;
