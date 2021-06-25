@@ -225,7 +225,7 @@ createfs ${IMAGE_SIZE} "${TMP_IMAGE}"
 
 echo "Copying files"
 mountfs "${TMP_IMAGE}"
-cp -a "${staging}"/* "${BOOT_MOUNT}"
+cp --no-preserve=ownership -f -r "${staging}"/* "${BOOT_MOUNT}"
 
 echo "Sync"
 unmount_image
