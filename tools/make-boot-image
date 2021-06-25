@@ -45,7 +45,7 @@ createfs() {
    fi
 
    if [ -n "${FAT_SIZE}" ]; then
-      fat_size="-F ${FAT_SIZE}"
+      FAT_SIZE="-F ${FAT_SIZE}"
    fi
 
    sectors=$((size_mb * MEGABYTE / SECTOR_SIZE))
@@ -113,7 +113,7 @@ createstaging() {
       rm -f "${staging}/fixup4x.dat"
    fi
 
-   for fw in $(find ${staging} -name '*.elf'); do
+   for fw in $(find "${staging}" -name '*.elf'); do
       fwCheckSecureBoot "${fw}"
    done
 
