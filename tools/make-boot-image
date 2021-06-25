@@ -56,24 +56,22 @@ createfs() {
 mountfs() {
    image="$1"
 
-   LOOP=$(udisksctl loop-setup -f "${image}" \
-      | grep loop \
-      | sed 's/.*\/dev\/loop\([0-9]*\).*/\/dev\/loop\1/')
+   LOOP=$(losetup -v -f --show "${image}")
    [ -e "${LOOP}" ] ||  die "Failed to create loop device"
 
-   BOOT_MOUNT=$(udisksctl mount --options rw -b "${LOOP}" | sed 's/.*Mounted \/dev\/.* at \(.*\)\.$/\1/')
-   [ -d "${BOOT_MOUNT}" ] || die "Failed to mount bootfs @ ${BOOT_MOUNT}"
-
+   BOOT_MOUNT=$(mktemp -d)
+   mount --options rw "${LOOP}" "${BOOT_MOUNT}" || die "Failed to mount bootfs @ ${BOOT_MOUNT}"
    echo "Mounted ${LOOP} @ ${BOOT_MOUNT}"
 }
 
 unmount_image() {
    if [ -d "${BOOT_MOUNT}" ]; then
-      udisksctl unmount -b "${LOOP}" > /dev/null || true
+      umount "${LOOP}" > /dev/null || true
+      rm -rf "${BOOT_MOUNT}"
       BOOT_MOUNT=""
    fi
    if [ -e "${LOOP}" ];then
-     udisksctl loop-delete -b "${LOOP}"
+     losetup -D "${LOOP}"
      LOOP=""
    fi
 }
@@ -133,10 +131,6 @@ checkDependencies() {
    if [ ! -f /sbin/mkfs.fat ]; then
        die "mkfs.fat is requried. Run this script on Linux"
    fi
-
-   if ! command -v udisksctl; then
-       die "udisksctl ot found. Try installing the udisks2 package."
-   fi
 }
 
 usage() {
@@ -150,10 +144,10 @@ Options:
 
 Examples:
 # Include all files in bootfs/
-make-boot-image -d bootfs/ -o boot.img
+sudo make-boot-image -d bootfs/ -o boot.img
 
-# Include only the files from bootfs/ required by Pi 4B
-make-boot-image -b pi4 -d bootfs/ -o boot.img
+# Include only the files from bootfs/ required by CM4
+sudo make-boot-image -b cm4 -d bootfs/ -o boot.img
 
 Environment variables:
 The following environment variables may be specified to optionally override mkfs.vfat
@@ -194,6 +188,7 @@ checkDependencies
 
 [ -d "${SOURCE_DIR}" ] || usage
 [ -n "${OUTPUT}" ] || usage
+[ "$(id -u)" = "0" ] || die "* Must be run as root - try 'sudo make-boot-image'"
 
 trap cleanup EXIT
 TMP_DIR="$(mktemp -d)"
