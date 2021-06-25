@@ -435,7 +435,7 @@ Operating modes:
    sudo apt install openssl python-pip
    sudo python3 -m pip install cryptodomex
 
-   rpi-eeprom-digest -k private.pem -i bootconf.txt -o bootconf.sig
+   rpi-eeprom-digest -k secure-boot.pem -i bootconf.txt -o bootconf.sig
    rpi-eeprom-config --config bootconf.txt --digest bootconf.sig --pubkey public.pem --out pieeprom-signed.bin pieeprom.bin
 
    Currently, the signing process is a separate step so can't be used with the --edit or --apply modes.

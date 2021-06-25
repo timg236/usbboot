@@ -5,12 +5,6 @@ bootloader release. Older bootloader and recovery.bin releases do not support se
 
 Steps for enabling secure boot:
 
-## Optional. Specify the private key file in an environment variable.
-Alternatively, specify the path when invoking the helper scripts.
-```bash
-export KEY_FILE="${HOME}/private.pem"
-```
-
 ## Optional. Customize the EEPROM config.
 Custom with the desired bootloader settings. 
 See: [Bootloader configuration](https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2711_bootloader_config.md)
@@ -21,7 +15,7 @@ option secure-boot can be tested and reverted via `RPIBOOT` at this stage.
 
 ## Generate the signed bootloader image
 ```bash
-cd secure-boot-recovery
+cd ${HOME}/usbboot/secure-boot-recovery
 ../tools/update-pieeprom.sh -k "${KEY_FILE}"
 ```
 
@@ -31,8 +25,8 @@ cd secure-boot-recovery
 * Power off CM4
 * Set nRPIBOOT jumper and remove EEPROM WP protection
 ```bash
-cd secure-boot-recovery
-../rpiboot -d .
+cd ${HOME}/usbboot/secure-boot-recovery
+sudo ../rpiboot -d .
 ```
 * Power ON CM4
 

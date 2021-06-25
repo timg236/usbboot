@@ -7,7 +7,6 @@ will refused to load this image.
 To do this run:
 
 ```bash
-KEY_FILE=$HOME/private.pem
 ../tools/rpi-eeprom-digest -i boot.img -o boot.sig -k "${KEY_FILE}"
 ```
 

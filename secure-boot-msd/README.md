@@ -7,11 +7,12 @@ will refused to load this image.
 To do this run:
 
 ```bash
-KEY_FILE=$HOME/private.pem
+cd "${HOME}/usbboot/secure-boot-msd"
 ../tools/rpi-eeprom-digest -i boot.img -o boot.sig -k "${KEY_FILE}"
 ```
 
 To run load the USB MSD device drivers via RPIBOOT run
 ```bash
-../rpiboot -d .
+cd "${HOME}/usbboot/secure-boot-msd"
+sudo ../rpiboot -d .
 ```

@@ -12,10 +12,10 @@ For more information run 'rpiboot -h'
 
 ## Building
 
-### Ubuntu
-Clone this on your Pi or an Ubuntu linux machine
+### Linux
+Clone this on your Pi or another Linux machine
 
-```
+```bash
 git clone --depth=1 https://github.com/raspberrypi/usbboot
 cd usbboot
 sudo apt install libusb-1.0-0-dev
@@ -31,7 +31,7 @@ From a macOS machine, you can also run usbboot, just follow the same steps:
 3. Build using make
 4. Run the binary
 
-```
+```bash
 git clone --depth=1 https://github.com/raspberrypi/usbboot
 cd usbboot
 brew install libusb
@@ -60,6 +60,26 @@ This will serve the boot directory to the Raspberry Pi Device.
 On Compute Module 4 EMMC-DISABLE / nRPIBOOT (GPIO 40) must be fitted to switch the ROM to usbboot mode.
 Otherwise, the SPI EEPROM bootloader image will be loaded instead.
 
+### Raspberry Pi Imager - BETA
+The Raspberry Pi Imager can be run natively on the CM4 providing a GUI for downloading and installing the operating system.
+
+Beta notes:
+* The current version runs rpi-update upon completion in order to update the firwamre and kernel to support NVMe.
+* `uart_2ndstage` is enabled 
+* The HDMI display is limited to 1080p to avoid potential problems with cables etc if a 4K display is attached.
+
+For NVMe boot update the bootloader first:  
+```bash
+sudo ./rpiboot -d nvme
+```
+
+Run Raspberry Pi Imager:  
+```bash
+sudo ./rpiboot -d imager
+```
+
+Once the imager is running you will be prompted to remove the micro-usb cable and connect a mouse.
+
 <a name="secure-boot"></a>
 ## Secure Boot
 TODO - Add link to whitepaper / user-guide
@@ -75,14 +95,15 @@ python3 -m pip install pycryptodomex
 #### Create an RSA key-pair using OpenSSL. Must be 2048 bits
 ```bash
 cd $HOME
-openssl genrsa 2048 > private.pem
+export KEY_FILE=${HOME}/secure-boot.pem
+openssl genrsa 2048 > "${KEY_FILE}"
 ```
 
 ### Secure Boot - configuration
 * Please see the [secure boot EEPROM guide](secure-boot-recovery/README.md) to enable via rpiboot `recovery.bin`.
 * Please see the [secure boot MSD guide](secure-boot-msd/README.md) for instructions about to mount the EMMC via USB mass-storage once secure-boot has been enabled.
 
-## Secure Boot - image creation
+### Secure Boot - image creation
 Secure boot requires a boot.img FAT image to be created. This plus a signature file (boot.sig)
 must be placed in the boot partition of the Raspberry Pi.
 
@@ -94,42 +115,28 @@ A helper script (`make-boot-image`) is provided to automate the image creation p
 script depends upon the mkfs.fat and losetup tools and only runs on Linux.
 
 #### Clone the Raspberry Pi OS boot files
-Copy the contents of `/boot` to a local directory called `secure-boot-files`
+```bash
+mkdir ${HOME}/secure-boot-files
+cp -a /boot/* ${HOME}/secure-boot-files
+```
 
 #### Set the kernel root device
 Verify that `cmdline.txt` in `secure-boot-files` points to the correct device for the root file-system.
 e.g. `root=/dev/mmcblk0p2` for the normal partition on CM4 EMMC.
 
 #### Create the boot image
-The `-p` product argument (pi4,pi400,cm4) tells the script to discard files which are not required by that product. This makes the image smaller and reduces the time taken to calculate the hash of the image file thereby reducing the boot time.
+The `-p` product argument (cm4/pi4/pi400) tells the script to discard files which are not required by that product. This makes the image smaller and reduces the time taken to calculate the hash of the image file thereby reducing the boot time.
+
 ```bash
-sudo ../tools/make-boot-image -d secure-boot-files -o boot.img -p pi4
+cd "${HOME}/usbboot"
+sudo tools/make-boot-image -d ${HOME}/secure-boot-files -o boot.img -b cm4
 ```
 
 #### Sign the boot image
 ```bash
-../tools/rpi-eeprom-digest -i boot.img -o boot.sig -k private.pem
+cd "${HOME}/usbboot"
+tools/rpi-eeprom-digest -i boot.img -o boot.sig -k ${KEY_FILE}
 ```
 
 #### Copy the secure boot image to the device boot filesystem
 Copy `boot.img` and `boot.sig` to the chosen boot filesystem. Secure boot images can be loaded from any of the normal boot devices (e.g. SD, USB, Network).
-
-### Raspberry Pi Imager - BETA
-The Raspberry Pi Imager can be run natively on the CM4 providing a GUI for downloading and installing the operating system.
-
-Beta notes:
-* The current version runs rpi-update upon completion in order to update the firwamre and kernel to support NVMe.
-* uart_2ndstage is enabled 
-* The HDMI display is limited to 1080p to avoid potential problems with cables etc if a 4K display is attached.
-
-For NVMe boot update the bootloader first:  
-```bash
-sudo ./rpiboot -d nvme
-```
-
-Run Raspberry Pi Imager:  
-```bash
-sudo ./rpiboot -d imager
-```
-
-Once the imager is running you will be prompted to remove the micro-usb cable and connect a mouse.
