@@ -9,6 +9,10 @@ MEGABYTE=$((1024 * 1024))
 BOOT_MOUNT=""
 LOOP=""
 
+# Firmware versions prior to this date don't support secure-boot.
+FW_MIN_TIME="May 27 2021"
+FW_MIN_TIMESTAMP=$(date -d "${FW_MIN_TIME}" +%s)
+
 # Define these environment variables to override mkfs options
 SECTOR_SIZE=${SECTOR_SIZE:-512}
 ROOT_DIR_ENTRIES=${ROOT_DIR_ENTRIES:-256}
@@ -108,6 +112,11 @@ createstaging() {
       rm -f "${staging}/start4x.elf"
       rm -f "${staging}/fixup4x.dat"
    fi
+
+   for fw in $(find ${staging} -name '*.elf'); do
+      fwCheckSecureBoot "${fw}"
+   done
+
    # Estimate the size of the image in KBs
    content="${TMP_DIR}/content.tar"
    echo "$(cd "${staging}"; ls -R)"
@@ -124,6 +133,19 @@ createstaging() {
 
    if [ "${IMAGE_SIZE}" -gt 20 ]; then
       echo "Warning: Large image size detected. Try removing unused files."
+   fi
+}
+
+fwCheckSecureBoot() {
+   file="$1"
+   if grep -q VC_BUILD_ID_TIME "${file}"; then
+      date_str=$(strings "${file}" | grep VC_BUILD_ID_TIME | sed 's/.*TIME: //' | grep -v ':')
+      file_timestamp=$(date -d "${date_str}" +%s)
+      if [ "${file_timestamp}" -lt "${FW_MIN_TIMESTAMP}" ]; then
+         echo "Firmware ${file} build date ${date_str} indicates secure boot is not supported."
+         echo "Minimum date ${FW_MIN_TIME}"
+         die "Firmware does not support secure boot"
+      fi
    fi
 }
 
