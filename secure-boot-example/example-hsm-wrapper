@@ -1,0 +1,24 @@
+#!/bin/sh
+
+set -e
+set -u
+
+# Example program to show the HSM wrapper interface
+# The first argument is the filename of the binary blob to sign
+# The output is the RSA2048 SHA256 PKCS#1 v1.5 signature as hex.
+#
+# Typically, there would be a HSM wrapper script per key.
+
+script_dir=$(cd "$(dirname "$0")" && pwd)
+KEY="${script_dir}/example-private.pem"
+
+die() {
+   echo "$@" >&2
+   exit 1
+}
+
+IMAGE="$1"
+[ -n "${IMAGE}" ] || die "$(basename $0) Input not specified"
+[ -f "${IMAGE}" ] || die "$(basename $0) Input ${IMAGE} not found"
+
+openssl dgst -hex -sign "${KEY}" -sha256 "${IMAGE}" | awk '{print $2}'
