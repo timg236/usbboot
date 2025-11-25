@@ -25,8 +25,8 @@ Devices supporting the fast Linux-based `mass-storage-gadget`
 * Compute Module 5
 
 Devices which require the legacy `msd` firmware loading interface
-* Raspberry Pi 1A
-* Compute Module
+* Raspberry Pi 1A+
+* Compute Module 1
 * Raspberry Pi Zero
 
 The `mass-storage-gadget` boots a Linux initramfs image that scans for SD/EMMC, NVMe, and USB block devices and uses `configfs` to expose them as USB mass-storage devices. Because it runs Linux, it also provides a console login via both the hardware UART and the USB CDC-UART interfaces.
