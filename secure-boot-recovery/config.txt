@@ -16,7 +16,7 @@ uart_2ndstage=1
 #
 # Uncomment program_pubkey=1 to enable this
 # WARNING: THIS OPTION MODIFIES THE BCM2711 CHIP AND IS IRREVERSIBLE.
-#program_pubkey=1
+program_pubkey=1
 
 # Pi 4B and Pi400 do not have a dedicated RPIBOOT jumper so a different GPIO
 # must be used to enable RPIBOOT if pulled low. The options are 2,4,5,6,7,8.
@@ -38,3 +38,10 @@ uart_2ndstage=1
 
 # Uncomment to instruct recovery.bin to stop sending metadata
 #recovery_metadata=0
+
+# Program the bootsys anti-rollback OTP number with the ARB version 
+# defined within recovery.bin. This causes older versions of the 
+# bootloader (bootsys) to exit immediatly if their version number
+# is smaller than the OTP value.
+# WARNING: THIS OPTION MODIFIES THE BCM2711 CHIP AND IS IRREVERSIBLE.
+# program_arb=1
